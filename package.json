@@ -1,6 +1,6 @@
 {
   "name": "node-strophe",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A Node.js compatible version of Strophe.js, borrowed from https://github.com/dhruvbird/node-xmpp-bosh",
   "main": "strophe.js",
   "engines": {

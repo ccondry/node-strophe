@@ -61,8 +61,10 @@ var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 var Base64         = require('./base64.js').Base64;
 var MD5            = require('./md5.js').MD5;
 var jsdom          = require("jsdom").jsdom;
-
 document = jsdom("test");
+//const jsdom = require("jsdom");
+//const { JSDOM } = jsdom;
+//const { document } = (new JSDOM(`<!DOCTYPE html><p>Hello world</p>`)).window;
 window = document.defaultView;
 window.XMLHttpRequest = XMLHttpRequest;
 window.Base64 = Base64;
@@ -478,7 +480,7 @@ Strophe = {
                 }
             }
         }
-
+        
         return node;
     },
 
@@ -496,6 +498,9 @@ Strophe = {
 	text = text.replace(/\&/g, "&amp;");
         text = text.replace(/</g,  "&lt;");
         text = text.replace(/>/g,  "&gt;");
+        // Added **
+        text = text.replace(/'/g,  "&apos;");
+        text = text.replace(/"/g, "&quot;");
         return text;
     },
 
@@ -513,7 +518,8 @@ Strophe = {
     xmlTextNode: function (text)
     {
 	//ensure text is escaped
-	text = Strophe.xmlescape(text);
+        // Comment for now **
+	//text = Strophe.xmlescape(text);
 
         return Strophe.xmlGenerator().createTextNode(text);
     },
@@ -542,8 +548,9 @@ Strophe = {
                 str += elem.childNodes[i].nodeValue;
             }
         }
-
-        return str;
+        // Added **
+        return Strophe.xmlescape(str);
+        //return str;
     },
 
     /** Function: copyElement
@@ -722,8 +729,11 @@ Strophe = {
      *      be one of the values in Strophe.LogLevel.
      *    (String) msg - The log message.
      */
+    
+    
     log: function (level, msg)
     {
+        console.log("Log Level: " + level + " => " + msg.toString());
         return;
     },
 
@@ -800,41 +810,77 @@ Strophe = {
         if (typeof(elem.tree) === "function") {
             elem = elem.tree();
         }
-
-        var nodeName = elem.nodeName.toLowerCase();
+        // Don't make lowercase for now...??
+        //var nodeName = elem.nodeName.toLowerCase();
+        var nodeName = elem.nodeName;
         var i, child;
 
         if (elem.getAttribute("_realname")) {
             nodeName = elem.getAttribute("_realname").toLowerCase();
         }
-
-        result = "<" + nodeName.toLowerCase();
+        
+//        result = "<" + nodeName.toLowerCase();
+//        for (i = 0; i < elem.attributes.length; i++) {
+//               if(elem.attributes[i].nodeName.toLowerCase() != "_realname") {
+//                 result += " " + elem.attributes[i].nodeName.toLowerCase() +
+//                "='" + elem.attributes[i].value
+//                    .replace(/&/g, "&amp;")
+//                       .replace(/\'/g, "&apos;")
+//                       .replace(/</g, "&lt;") + "'";
+//               }
+//        }
+//        if (elem.childNodes.length > 0) {
+//            result += ">";
+//            for (i = 0; i < elem.childNodes.length; i++) {
+//                child = elem.childNodes[i];
+//                if (child.nodeType == Strophe.ElementType.NORMAL) {
+//                    // normal element, so recurse
+//                    result += Strophe.serialize(child);
+//                } else if (child.nodeType == Strophe.ElementType.TEXT) {
+//                    // text element
+//                    result += child.nodeValue;
+//                }
+//            }
+//            result += "</" + nodeName.toLowerCase() + ">";
+//        } else {
+//            result += "/>";
+//        }
+        // Insert new **
+        
+        result = "<" + nodeName;
         for (i = 0; i < elem.attributes.length; i++) {
-               if(elem.attributes[i].nodeName.toLowerCase() != "_realname") {
-                 result += " " + elem.attributes[i].nodeName.toLowerCase() +
-                "='" + elem.attributes[i].value
-                    .replace(/&/g, "&amp;")
-                       .replace(/\'/g, "&apos;")
-                       .replace(/</g, "&lt;") + "'";
-               }
+           if(elem.attributes[i].nodeName != "_realname") {
+             result += " " + elem.attributes[i].nodeName +
+            "='" + elem.attributes[i].value
+                .replace(/&/g, "&amp;")
+                   .replace(/\'/g, "&apos;")
+                   .replace(/>/g, "&gt;")
+                   .replace(/</g, "&lt;") + "'";
+           }
         }
+
         if (elem.childNodes.length > 0) {
             result += ">";
             for (i = 0; i < elem.childNodes.length; i++) {
                 child = elem.childNodes[i];
-                if (child.nodeType == Strophe.ElementType.NORMAL) {
+                switch( child.nodeType ){
+                  case Strophe.ElementType.NORMAL:
                     // normal element, so recurse
                     result += Strophe.serialize(child);
-                } else if (child.nodeType == Strophe.ElementType.TEXT) {
-                    // text element
-                    result += child.nodeValue;
+                    break;
+                  case Strophe.ElementType.TEXT:
+                    // text element to escape values
+                    result += Strophe.xmlescape(child.nodeValue);
+                    break;
+                  case Strophe.ElementType.CDATA:
+                    // cdata section so don't escape values
+                    result += "<![CDATA["+child.nodeValue+"]]>";
                 }
             }
-            result += "</" + nodeName.toLowerCase() + ">";
+            result += "</" + nodeName + ">";
         } else {
             result += "/>";
-        }
-
+}
         return result;
     },
 
@@ -1029,11 +1075,17 @@ Strophe.Builder.prototype = {
      */
     cnode: function (elem)
     {
-        var xmlGen = Strophe.xmlGenerator();
-        var newElem = xmlGen.importNode ? xmlGen.importNode(elem, true) : Strophe.copyElement(elem);
-        this.node.appendChild(newElem);
-        this.node = newElem;
+        // From eGain
+        this.node.appendChild(elem);
+        this.node = elem;
         return this;
+        
+        // Real From Strophe
+//        var xmlGen = Strophe.xmlGenerator();
+//        var newElem = xmlGen.importNode ? xmlGen.importNode(elem, true) : Strophe.copyElement(elem);
+//        this.node.appendChild(newElem);
+//        this.node = newElem;
+//        return this;
     },
 
     /** Function: t
@@ -1318,6 +1370,7 @@ Strophe.Request = function (elem, func, rid, sends)
         var now = new Date();
         return (now - this.dead) / 1000;
     };
+    Strophe.log("Debug", this.data);
     this.xhr = this._newXHR();
 };
 
@@ -1336,7 +1389,7 @@ Strophe.Request.prototype = {
      */
     getResponse: function ()
     {
-        // console.log("getResponse:", this.xhr.responseXML, ":", this.xhr.responseText);
+        console.log("getResponse:", this.xhr.responseXML, ":", this.xhr.responseText);
 
         var node = null;
         if (this.xhr.responseXML && this.xhr.responseXML.documentElement) {
@@ -1352,12 +1405,12 @@ Strophe.Request.prototype = {
             // Hack for node.
             var jsdom = require("jsdom").jsdom;
             var myDoc = jsdom(this.xhr.responseText, {parsingMode: "xml"});
+//            var myDoc = new JSDOM(this.xhr.responseText, {parsingMode: "xml"});
             node = myDoc.documentElement;
 
             Strophe.error("invalid response received");
             Strophe.error("responseText: " + this.xhr.responseText);
-            Strophe.error("responseXML: " +
-                Strophe.serialize(this.xhr.responseXML));
+            Strophe.error("responseXML: " + Strophe.serialize(this.xhr.responseXML));
         }
 
         return node;
@@ -1622,7 +1675,7 @@ Strophe.Connection.prototype = {
         this.domain = Strophe.getDomainFromJid(this.jid);
 
         // build the body tag
-		var body_attrs = {
+	var body_attrs = {
             to: this.domain,
             "xml:lang": "en",
             wait: this.wait,
@@ -1705,6 +1758,7 @@ Strophe.Connection.prototype = {
      */
     xmlInput: function (elem)
     {
+        console.log("Strophe -> XML Input: " + elem.toString());
         return;
     },
 
@@ -1722,6 +1776,7 @@ Strophe.Connection.prototype = {
      */
     xmlOutput: function (elem)
     {
+        console.log("Strophe -> XML Output: " + elem);
         return;
     },
 
@@ -1739,6 +1794,7 @@ Strophe.Connection.prototype = {
      */
     rawInput: function (data)
     {
+        console.log("Strophe -> RawInput RECIEVED: " + data);
         return;
     },
 
@@ -1756,6 +1812,7 @@ Strophe.Connection.prototype = {
      */
     rawOutput: function (data)
     {
+        console.log("Strophe -> RawOutput SENT: " + data);
         return;
     },
 
@@ -2556,7 +2613,7 @@ Strophe.Connection.prototype = {
      */
     _connect_cb: function (req)
     {
-        Strophe.info("_connect_cb was called");
+        Strophe.info("STROPHE_connect_cb was called");
 
         this.connected = true;
         var bodyWrap = req.getResponse();

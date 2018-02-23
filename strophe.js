@@ -61,10 +61,8 @@ var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 var Base64         = require('./base64.js').Base64;
 var MD5            = require('./md5.js').MD5;
 var jsdom          = require("jsdom").jsdom;
+
 document = jsdom("test");
-//const jsdom = require("jsdom");
-//const { JSDOM } = jsdom;
-//const { document } = (new JSDOM(`<!DOCTYPE html><p>Hello world</p>`)).window;
 window = document.defaultView;
 window.XMLHttpRequest = XMLHttpRequest;
 window.Base64 = Base64;

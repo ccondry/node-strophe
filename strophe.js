@@ -729,11 +729,8 @@ Strophe = {
      *      be one of the values in Strophe.LogLevel.
      *    (String) msg - The log message.
      */
-    
-    
     log: function (level, msg)
     {
-        console.log("Log Level: " + level + " => " + msg.toString());
         return;
     },
 
@@ -1370,7 +1367,6 @@ Strophe.Request = function (elem, func, rid, sends)
         var now = new Date();
         return (now - this.dead) / 1000;
     };
-    Strophe.log("Debug", this.data);
     this.xhr = this._newXHR();
 };
 
@@ -1389,7 +1385,7 @@ Strophe.Request.prototype = {
      */
     getResponse: function ()
     {
-        console.log("getResponse:", this.xhr.responseXML, ":", this.xhr.responseText);
+        // console.log("getResponse:", this.xhr.responseXML, ":", this.xhr.responseText);
 
         var node = null;
         if (this.xhr.responseXML && this.xhr.responseXML.documentElement) {
@@ -1758,7 +1754,6 @@ Strophe.Connection.prototype = {
      */
     xmlInput: function (elem)
     {
-        console.log("Strophe -> XML Input: " + elem.toString());
         return;
     },
 
@@ -1776,7 +1771,6 @@ Strophe.Connection.prototype = {
      */
     xmlOutput: function (elem)
     {
-        console.log("Strophe -> XML Output: " + elem);
         return;
     },
 
@@ -1794,7 +1788,6 @@ Strophe.Connection.prototype = {
      */
     rawInput: function (data)
     {
-        console.log("Strophe -> RawInput RECIEVED: " + data);
         return;
     },
 
@@ -1812,7 +1805,6 @@ Strophe.Connection.prototype = {
      */
     rawOutput: function (data)
     {
-        console.log("Strophe -> RawOutput SENT: " + data);
         return;
     },
 
